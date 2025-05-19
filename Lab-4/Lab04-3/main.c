@@ -86,13 +86,15 @@ __interrupt void Port_4(void) {
             if ((P4IN & BIT4) == 0) {
                 debounce_count++;
                 __delay_cycles(200);
+            } else {
+                debounce_count = 0;
             }
         }
         if (led_count < 5) {
             led_count++;
+            refresh_led();
+            init_timer();
         }
-        refresh_led();
-        init_timer();
         P4IFG &= ~BIT4;
         P4IE |= BIT4; //重新开P4.3口中断
     } else if (P4IFG & BIT3) {
@@ -101,6 +103,8 @@ __interrupt void Port_4(void) {
             if ((P4IN & BIT4) == 0) {
                 debounce_count++;
                 __delay_cycles(200);
+            } else {
+                debounce_count = 0;
             }
         }
         led_count = 0;
