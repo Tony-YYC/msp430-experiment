@@ -3,6 +3,9 @@
  */
 #include <msp430f6638.h>
 #include <stdint.h>
+#define MCLK_FREQ 16000000
+#define SMCLK_FREQ 1000000
+#define ACLK_FREQ 32760
 
 typedef struct // 以指针形式定义P8口的各个寄存器
 {
@@ -23,11 +26,9 @@ const GPIO_TypeDef* LED_GPIO[5] = { &GPIO4, &GPIO4, &GPIO4, &GPIO5, &GPIO8 };
 const uint8_t LED_PORT[5] = { BIT5, BIT6, BIT7, BIT7, BIT0 };
 
 uint8_t led_count = 0; // 当前点亮的LED数量
-const uint8_t DEBOUNCE_THRESHOLD = 5;
 
-void init_timer();
-void refresh_led();
-void toggle_led();
+void refresh_led(uint8_t led_count);
+void toggle_led(uint8_t led_count);
 
 void main(void) {
     WDTCTL = WDTPW + WDTHOLD; // 关闭看门狗
@@ -36,7 +37,11 @@ void main(void) {
     for (i = 0; i < 5; ++i)
         *LED_GPIO[i]->PxDIR |= LED_PORT[i]; // 设置各LED灯所在端口为输出方向
 
-    init_timer();
+    TA0CTL |= MC_1 + TASSEL_1 + TACLR;
+    // 时钟为SMCLK,比较模式，开始时清零计数器
+    TA0CCTL0 = CCIE; // 比较器中断使能
+    TA0CCR0 = ACLK_FREQ; // 比较值设为1,000,000，相当于1s的时间间隔
+    refresh_led(led_count);
 
     //注意：P4.4口为按键S3，P4.3口为按键S4
     P4DIR &= (~BIT4 & ~BIT3);
@@ -49,14 +54,7 @@ void main(void) {
     __bis_SR_register(LPM0_bits + GIE); // 进入低功耗并开启总中断
 }
 
-void init_timer() {
-    TA0CTL |= MC_1 + TASSEL_2 + TACLR;
-    // 时钟为SMCLK,比较模式，开始时清零计数器
-    TA0CCTL0 = CCIE; // 比较器中断使能
-    TA0CCR0 = 1000000; // 比较值设为1,000,000，相当于1s的时间间隔
-}
-
-void refresh_led() {
+void refresh_led(uint8_t led_count) {
     int i;
     for (i = 0; i < 5; i++) {
         if (i < led_count)
@@ -66,7 +64,7 @@ void refresh_led() {
     }
 }
 
-void toggle_led() {
+void toggle_led(uint8_t led_count) {
     int i;
     for (i = 0; i < led_count; i++)
         *LED_GPIO[i]->PxOUT ^= LED_PORT[i];
@@ -74,7 +72,7 @@ void toggle_led() {
 
 #pragma vector = TIMER0_A0_VECTOR
 __interrupt void Timer_A(void) {
-    toggle_led();
+    toggle_led(led_count);
 }
 
 #pragma vector = PORT4_VECTOR
@@ -82,35 +80,20 @@ __interrupt void Port_4(void) {
     int debounce_count = 0;
     if (P4IFG & BIT4) {
         P4IE &= ~BIT4; //关P4.3口中断
-        while (debounce_count < DEBOUNCE_THRESHOLD) {
-            if ((P4IN & BIT4) == 0) {
-                debounce_count++;
-                __delay_cycles(200);
-            } else {
-                debounce_count = 0;
-            }
-        }
         if (led_count < 5) {
             led_count++;
-            refresh_led();
-            init_timer();
+            refresh_led(led_count);
         }
+        __delay_cycles(MCLK_FREQ / 100);
         P4IFG &= ~BIT4;
         P4IE |= BIT4; //重新开P4.3口中断
     } else if (P4IFG & BIT3) {
-        P4IE &= ~BIT3; //关P4.3口中断
-        while (debounce_count < DEBOUNCE_THRESHOLD) {
-            if ((P4IN & BIT4) == 0) {
-                debounce_count++;
-                __delay_cycles(200);
-            } else {
-                debounce_count = 0;
-            }
-        }
+        P4IE &= ~BIT3; //关P4.4口中断
         led_count = 0;
-        refresh_led();
+        refresh_led(led_count);
+        __delay_cycles(MCLK_FREQ / 100);
         P4IFG &= ~BIT3;
-        P4IE |= BIT3; //重新开P4.3口中断
+        P4IE |= BIT3; //重新开P4.4口中断
     } else {
         P4IFG = 0;
     }

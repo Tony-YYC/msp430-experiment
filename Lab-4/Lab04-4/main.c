@@ -47,13 +47,13 @@ void main(void) {
 // 该函数依次点亮五盏LED灯，然后再全灭，指示系统重启
 void start_indicator() {
     int i;
-    for (i = 0; i < 5; ++i) {
+    for (i = 0; i < 2; ++i) {
         *LED_GPIO[i]->PxOUT |= LED_PORT[i];
         __delay_cycles(MCLK_FREQ / 10);
         WDTCTL = WDTPW + WDTCNTCL; //喂狗
     }
     __delay_cycles(MCLK_FREQ / 20);
-    for (i = 0; i < 5; ++i) {
+    for (i = 0; i < 2; ++i) {
         *LED_GPIO[i]->PxOUT &= ~LED_PORT[i];
     }
 }
