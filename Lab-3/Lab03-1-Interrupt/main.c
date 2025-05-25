@@ -9,9 +9,9 @@ void init_clock();
 void main(void) {
     WDTCTL = WDTPW + WDTHOLD; //关闭看门狗
     init_clock();
-    P4DIR |= BIT7; //设置P4.7口方向为输出
+    P4DIR |= BIT7; //设置P4.7口(连接led3)方向为输出
     P4DIR &= ~BIT0;
-    P4REN |= BIT0; //使能P4.0上拉电阻
+    P4REN |= BIT0; //使能P4.0（连接S7按键）上拉电阻
     P4OUT |= BIT0; //P4.0口置高电平
     P4IES |= BIT0; //中断沿设置（下降沿触发）
     P4IFG &= ~BIT0; //清P4.0中断标志
@@ -26,9 +26,9 @@ void main(void) {
 __interrupt void Port_4(void) {
     if (P4IFG & BIT0) {
         P4IE &= ~BIT0; //关闭P4.0中断
-        P4OUT |= BIT7; //开LED7灯
+        P4OUT |= BIT7; //开LED3灯
         __delay_cycles(XT1CLK_FREQ); //延时1s
-        P4OUT &= ~BIT7; //关LED7灯
+        P4OUT &= ~BIT7; //关LED3灯
         P4IFG &= ~BIT0; //清P4.0中断标志位
         P4IE |= BIT0; //重新使能P4.0口中断
     } else {
@@ -36,9 +36,8 @@ __interrupt void Port_4(void) {
     }
 }
 
-void init_clock()
-{
-    while(BAKCTL & LOCKIO) // Unlock XT1 pins for operation
+void init_clock() {
+    while (BAKCTL & LOCKIO) // Unlock XT1 pins for operation
         BAKCTL &= ~(LOCKIO);
     UCSCTL6 &= ~XT1OFF; //启动XT1
     while (UCSCTL7 & XT1LFOFFG) //等待XT1稳定
