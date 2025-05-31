@@ -7,8 +7,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-const char index_array_yyc[] = { 0x01, 0x02, 0x03, 0x00 };
-
 void initClock() {
     while (BAKCTL & LOCKIO) // Unlock XT1 pins for operation
         BAKCTL &= ~(LOCKIO);
@@ -34,6 +32,7 @@ void initClock() {
 }
 
 int main(void) {
+    const char index_array_names[] = { 0x01, 0x02, 0x03, 0x0F, 0x04, 0x05, 0x06, 0x0F, 0x07, 0x08, 0x09, 0x0F, 0x0A, 0x0B, 0x0C, 0x0F, 0x0D, 0x0E, 0x00 };
     // Stop watchdog timer to prevent time out reset
     WDTCTL = WDTPW + WDTHOLD;
 
@@ -47,22 +46,24 @@ int main(void) {
     etft_AreaSet(0, 0, 319, 239, 0);
 
     while (1) {
-        etft_AreaSet(0, 0, 39, 239, 0);
-        etft_AreaSet(40, 0, 79, 239, 31);
-        etft_AreaSet(80, 0, 119, 239, 2016);
-        etft_AreaSet(120, 0, 159, 239, 63488);
-        etft_AreaSet(160, 0, 199, 239, 2047);
-        etft_AreaSet(200, 0, 239, 239, 63519);
-        etft_AreaSet(240, 0, 279, 239, 65504);
-        etft_AreaSet(280, 0, 319, 239, 65535);
-        __delay_cycles(MCLK_FREQ * 3);
+        //etft_AreaSet(0, 0, 39, 239, 0);
+        // etft_AreaSet(40, 0, 79, 239, 31);
+        // etft_AreaSet(80, 0, 119, 239, 2016);
+        // etft_AreaSet(120, 0, 159, 239, 63488);
+        // etft_AreaSet(160, 0, 199, 239, 2047);
+        // etft_AreaSet(200, 0, 239, 239, 63519);
+        // etft_AreaSet(240, 0, 279, 239, 65504);
+        // etft_AreaSet(280, 0, 319, 239, 65535);
+        //__delay_cycles(MCLK_FREQ * 3);
         etft_AreaSet(0, 0, 319, 239, 0);
-        __delay_cycles(MCLK_FREQ);
+        __delay_cycles(MCLK_FREQ / 2);
         // etft_DisplayString("TI MSP430F6638 EVM", 100, 80, 65535, 0);
         // etft_DisplayString("TI UNIVERSITY PROGRAM", 0, 150, 63488, 0);
         // etft_DisplayString("- TSINGHUA UNIVERSITY", 100, 180, 65504, 0);
-        etft_DisplayCustomCJK(index_array_yyc, 10, 5, 65535, 0);
-        etft_DisplayImage(image_bear, 100, 80, 64, 64);
-        __delay_cycles(MCLK_FREQ * 3);
+        etft_DisplayCustomCJK(index_array_names, 10, 10, 65535, 0);
+        etft_DisplayCustomCJK(index_array_names, 10, 40, 65535, 31 );
+        etft_DisplayCustomCJK(index_array_names, 10, 70, 0, 65535);
+        etft_DisplayImage(image_bear, 128, 120, 64, 64);
+        __delay_cycles(MCLK_FREQ * 5);
     }
 }

@@ -69,6 +69,8 @@ void etft_DisplayString(const char* str, uint16_t sx, uint16_t sy, uint16_t fRGB
     }
 }
 
+
+
 void etft_DisplayCustomCJK(const char* index_array,
                            uint16_t sx,
                            uint16_t sy,
@@ -78,9 +80,11 @@ void etft_DisplayCustomCJK(const char* index_array,
     uint16_t cx, cy;
 
     while (1) {
-        char curchar = index_array[cc];
-        if (curchar == '\0') //字符串已发送完
+        char char_value_from_array = index_array[cc]; // Read the raw char value
+        if (char_value_from_array == '\0') // Assuming null-terminated string of indices
             return;
+
+        unsigned int char_idx = (unsigned int)char_value_from_array;
 
         cx = 0;
         cy = 0;
@@ -95,28 +99,29 @@ void etft_DisplayCustomCJK(const char* index_array,
 
         uint16_t color;
         while (1) {
-            if (cx >= 16) {
-                cx = 0;
-                cy++;
-                if (cy >= 16) { //一个字符发送完毕
-                    cc++; //下一个字符
-                    sx += 16;
-                    if (sx >= TFT_YSIZE) //越过行末
-                    {
-                        sx = 0;
-                        sy += 16;
-                    }
-                    break;
+            if (cx >= 8) { // 处理一个字节的8个bit
+                cx = 0;    // 重置一个字节中bit的计数到0
+                cy++;      // 切换到这个字符的下一个字节
+                if (cy >= 32) { // 处理完一个字符的32个字节
+                    break;      // 一个字符处理完，切换到下一个字符
                 }
             }
 
-            if ((tft_cjk_bitmap[curchar * 16 + cy] << cx) & 0x80)
-                color = fRGB;
+            if (tft_cjk_bitmap[char_idx * 32 + cy] & (0x80 >> cx))
+                color = fRGB; // 前景色
             else
-                color = bRGB;
+                color = bRGB; // 背景色
 
-            tft_SendData(color);
-            cx++; //X自增
+            tft_SendData(color); // 发送像素颜色
+            cx++; // 移动到下一个bit
+        }
+
+        cc++; // 切换到下一个字符
+        sx += 16; // X轴位置切换到下一个字符
+        if (sx >= TFT_YSIZE) // 如果X轴位置超过屏幕宽度
+        {
+            sx = 0;     // 将x轴位置移到行首
+            sy += 16;   // y轴移到下一行（另起一行）
         }
     }
 }
@@ -133,7 +138,8 @@ void etft_DisplayImage(const uint8_t* image,
         row_length |= 0x03;
         row_length += 1;
     }
-    const uint8_t* ptr = image + (height - 1) * row_length;
+    // const uint8_t* ptr = image + (height - 1) * row_length;
+    const uint8_t* ptr = image;
     tft_SendCmd(TFTREG_WIN_MINX, sx);
     tft_SendCmd(TFTREG_WIN_MINY, sy);
     tft_SendCmd(TFTREG_WIN_MAXX, sx + width - 1);
@@ -148,6 +154,6 @@ void etft_DisplayImage(const uint8_t* image,
             tft_SendData(etft_Color(ptr[2], ptr[1], ptr[0]));
             ptr += 3;
         }
-        ptr -= width * 3 + row_length;
+        ptr += row_length - 3 * width;
     }
 }
