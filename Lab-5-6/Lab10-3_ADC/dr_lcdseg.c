@@ -123,14 +123,17 @@ void LCDSEG_DisplayNumString(char* num) {
 void LCDSEG_DisplayFloatNum(float num, int dppos) {
     if (dppos > 3) {
         dppos = 3;
-    } else if (dppos <= 0) {
-        dppos = 1;
+    } else if (dppos < 0) {
+        dppos = 0;
     }
-    if (dppos == 1) {
-        LCDSEG_DisplayNumber((int32_t)num, 1);
+    if(dppos == 0){
+        LCDSEG_DisplayNumber((int32_t)(num), 0);
+    }
+    else if (dppos == 1) {
+        LCDSEG_DisplayNumber((int32_t)(num * 10.0f), 1);
     } else if (dppos == 2) {
-        LCDSEG_DisplayNumber((int32_t)(num * 10.0f), 2);
+        LCDSEG_DisplayNumber((int32_t)(num * 100.0f), 2);
     } else {
-        LCDSEG_DisplayNumber((int32_t)(num * 100.0f), 3);
+        LCDSEG_DisplayNumber((int32_t)(num * 1000.0f), 3);
     }
 }

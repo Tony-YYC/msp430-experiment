@@ -48,14 +48,13 @@ void main(void) {
     float result = 0.0f; // 设置结果变量
     while (1) {
         ADC12CTL0 |= ADC12SC; // 开始采样转换
-        while (ADC12CTL1 & ADC12BUSY)
-            ; // 等待转换完成
+        __delay_cycles(1000);
         value = ADC12MEM0; // 把结果赋给变量
         unsigned int i;
         for (i = 0; i < 6; i++)
             LCDSEG_SetDigit(i, -1); // 段式液晶清屏
         result = (float)value * 3.3f / 4096.0f; // 将ADC值转换为电压
-        LCDSEG_DisplayNumber(value, 0); // 显示结果
-        __delay_cycles(MCLK_FREQ / 10); // 延时10ms
+        LCDSEG_DisplayFloatNum(result, 3); // 显示结果
+        __delay_cycles(MCLK_FREQ / 2); // 延时500ms
     }
 }

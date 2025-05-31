@@ -60,7 +60,7 @@ void main(void) {
 #pragma vector = TIMER0_A0_VECTOR
 __interrupt void Timer_A(void) {
     float amplitude =
-        (1.0f + sinf((float)index / 100.0f * 2 * M_PI)) * 2048.0f; // 计算当前索引对应的正弦波值
+        (1.0f + sinf((float)index / 100.0f * 2 * M_PI)) * 2000.0f; // 计算当前索引对应的正弦波值
     uint16_t value = (uint16_t)amplitude; // 将正弦波值转换为DAC12的输入值
     DAC12_0DAT = value; // 输出正弦波表中的值
     index = (index + 1) % 100; // 循环索引
