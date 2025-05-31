@@ -7,6 +7,7 @@
 
 #ifndef DR_LCDSEG_H_
 #define DR_LCDSEG_H_
+#include <stdint.h>
 
 #define CHAR_S 17
 #define CHAR_J 18
@@ -23,5 +24,8 @@ void LCDSEG_DisplayNumber(
     int32_t num,
     int dppos); //让段式液晶显示num这个整数，并在dppos位置处添加小数点(《0《dppos《=3)
 void LCDSEG_DisplayNumString(char* num);
+void LCDSEG_DisplayFloatNum(
+    float num,
+    int dppos); //让段式液晶显示num这个浮点数，并在dppos位置处添加小数点(0<dppos<=3)
 
 #endif /* DR_LCDSEG_H_ */
