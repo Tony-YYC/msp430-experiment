@@ -94,6 +94,10 @@ void LCDSEG_DisplayNumber(int32_t num, int dppos) {
     if (isneg)
         LCDSEG_SetDigit(curpos++, 16); //加负号
 
+    while (curpos <= dppos) {
+        LCDSEG_SetDigit(curpos++, 0); //补0
+    }
+
     while (curpos < 6)
         LCDSEG_SetDigit(curpos++, -1); //将多余位清空
 
