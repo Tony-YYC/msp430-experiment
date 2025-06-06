@@ -96,10 +96,7 @@ int uart_write_byte(uint8_t byte) {
     tx_buffer.head = next_head;
 
     // Enable TX interrupt to start/continue transmission
-    // A critical section prevents a race condition
-    __disable_interrupt();
     UCA1IE |= UCTXIE;
-    __enable_interrupt();
 
     return 1; // Success
 }
@@ -180,6 +177,7 @@ __interrupt void USCI_A1_ISR(void) {
                 // Buffer is empty, disable the transmit interrupt [cite: 228]
                 // This is crucial to prevent the ISR from firing continuously
                 UCA1IE &= ~UCTXIE;
+                UCA1IFG |= UCTXIFG;
             }
             break;
         }
